@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <!-- For NuGet -->
     <PackageId>Connor.S3</PackageId>
-    <Version>5.0.0</Version>
+    <Version>6.0.0</Version>
     <Authors>Connor Vargas</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -12,12 +12,13 @@
     <PackageProjectUrl>https://github.com/ConnorV645/Connor.S3</PackageProjectUrl>
     <PackageIcon>icon1.png</PackageIcon>
     <Description>Create a wrapper around AWS S3.</Description>
-    <AssemblyVersion>5.0.0.0</AssemblyVersion>
-    <FileVersion>5.0.0.0</FileVersion>
+    <AssemblyVersion>6.0.0.0</AssemblyVersion>
+    <FileVersion>6.0.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.7.0.12" />
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.2" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.9.2" />
     <None Include="icon1.png" Pack="true" PackagePath="" />
   </ItemGroup>
 

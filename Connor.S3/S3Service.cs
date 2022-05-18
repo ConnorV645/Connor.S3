@@ -1,10 +1,12 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using Amazon;
+﻿using Amazon;
+using Amazon.Extensions.NETCore.Setup;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
+using Microsoft.Extensions.Logging;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Connor.S3
 {
@@ -12,26 +14,31 @@ namespace Connor.S3
     {
         protected readonly AmazonS3Client s3Client;
         public string DefaultBucket { get; set; }
-        public S3Service()
+        public S3Service(ILogger<S3Service> logger, AWSOptions options = null)
         {
             var s3Access = Environment.GetEnvironmentVariable("S3Access");
             var s3Secret = Environment.GetEnvironmentVariable("S3Secret");
             var s3Region = Environment.GetEnvironmentVariable("S3Region");
-
-            if (string.IsNullOrEmpty(s3Access))
+            try
             {
-                throw new Exception("S3Access Environment Variable is not set");
+                if (options != null && options.Credentials != null)
+                {
+                    s3Client = new(options.Credentials, options.Region);
+                }
+                else if (!string.IsNullOrEmpty(s3Access) && !string.IsNullOrEmpty(s3Secret) && !string.IsNullOrEmpty(s3Region))
+                {
+                    s3Client = new AmazonS3Client(s3Access, s3Secret, GetRegionFromString(s3Region));
+                }
+                else
+                {
+                    var creds = Amazon.Runtime.FallbackCredentialsFactory.GetCredentials();
+                    s3Client = new(creds);
+                }
             }
-            if (string.IsNullOrEmpty(s3Secret))
+            catch (Exception ex)
             {
-                throw new Exception("S3Secret Environment Variable is not set");
+                logger.LogError(ex, "Error Starting S3 Service");
             }
-            if (string.IsNullOrEmpty(s3Region))
-            {
-                throw new Exception("S3Region Environment Variable is not set");
-            }
-
-            s3Client = new AmazonS3Client(s3Access, s3Secret, GetRegionFromString(s3Region));
         }
 
         public S3Service(string access, string secret, string region)
@@ -138,6 +145,22 @@ namespace Connor.S3
                 throw new Exception("S3 Bucket Is Required");
             }
             await s3Client.DeleteObjectAsync(finalBucket, path);
+        }
+
+        public string GetPresignedURL(string path, string bucket = null, double expiresInMinutes = 1)
+        {
+            var finalBucket = bucket ?? DefaultBucket;
+            if (string.IsNullOrWhiteSpace(finalBucket))
+            {
+                throw new Exception("S3 Bucket Is Required");
+            }
+
+            return s3Client.GetPreSignedURL(new()
+            {
+                BucketName = finalBucket,
+                Expires = DateTime.UtcNow.AddMinutes(expiresInMinutes),
+                Key = path
+            });
         }
 
         public void Dispose()
