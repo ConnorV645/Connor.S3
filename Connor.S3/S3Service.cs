@@ -13,9 +13,11 @@ namespace Connor.S3
     public class S3Service : IDisposable
     {
         protected readonly AmazonS3Client s3Client;
+        protected readonly ILogger logger;
         public string DefaultBucket { get; set; }
-        public S3Service(ILogger<S3Service> logger, AWSOptions options = null)
+        public S3Service(ILogger logger, AWSOptions options = null)
         {
+            this.logger = logger;
             var s3Access = Environment.GetEnvironmentVariable("S3Access");
             var s3Secret = Environment.GetEnvironmentVariable("S3Secret");
             var s3Region = Environment.GetEnvironmentVariable("S3Region");
